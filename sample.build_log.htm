@@ -27,23 +27,17 @@ Project File Date:  01/06/2024
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'C:\Keil_v5\ARM\Comp v5\Bin'
 Build target 'Target 1'
-compiling IRQ_timer.c...
-timer\../game.h(8): warning:  #1295-D: Deprecated declaration changeActivePlayer - give arg types
-  int changeActivePlayer();
-timer\IRQ_timer.c(33): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "uint8_t *"
-  	GUI_Text(105,300,  &first_char, Black, White);
-timer\IRQ_timer.c: 2 warnings, 0 errors
 compiling game.c...
-game.h(8): warning:  #1295-D: Deprecated declaration changeActivePlayer - give arg types
+game.h(13): warning:  #1295-D: Deprecated declaration changeActivePlayer - give arg types
   int changeActivePlayer();
-game.c(75): warning:  #68-D: integer conversion resulted in a change of sign
+game.c(81): warning:  #68-D: integer conversion resulted in a change of sign
   	NVIC_SetPriority(TIMER0_IRQn, -3);
-game.c(91): warning:  #1-D: last line of file ends without a newline
+game.c(246): warning:  #1-D: last line of file ends without a newline
   #endif
 game.c: 3 warnings, 0 errors
 linking...
-Program Size: Code=19760 RO-data=1820 RW-data=64 ZI-data=1008  
-".\sample.axf" - 0 Error(s), 5 Warning(s).
+Program Size: Code=22610 RO-data=1806 RW-data=92 ZI-data=1036  
+".\sample.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -66,7 +60,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.6.0
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:00
 </pre>
 </body>
 </html>

@@ -24,19 +24,27 @@
 **
 ******************************************************************************/
 volatile int seconds=20;
-volatile char first_char;
+volatile char first_char[2];
+extern volatile int player_turn;
+extern volatile int a_remaining_walls, b_remaining_walls;
+
 void TIMER0_IRQHandler (void)
 {
 	seconds--;
-	first_char = seconds/10 +'0';
-
-	GUI_Text(105,300,  &first_char, Black, White);
+	sprintf(first_char, "Remaining time: %02d", (seconds));
+	GUI_Text(5,300,  first_char, White, Black);
+	//GUI_Text(120,300,  &second_char, Black, White);
 	
 	
 	if(seconds==0){
 		changeActivePlayer();
-		GUI_Text(105,300, "20", Black, White);
-		//TODO aggiorna il display
+		GUI_Text(5,300, "Remaining time: 20", White, Black);
+		if (player_turn==1){
+			GUI_Text(5,240, (uint8_t *)  "Turn A", White, Black);
+		}
+		else{
+			GUI_Text(5,240, (uint8_t *) "Turn B", White, Black);
+		}
 		seconds=20;
 	}
 	

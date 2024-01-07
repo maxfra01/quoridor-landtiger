@@ -667,7 +667,19 @@ void GUI_Text(uint16_t Xpos, uint16_t Ypos, uint8_t *str,uint16_t Color, uint16_
     while ( *str != 0 );
 }
 
+volatile int line;
+void LCD_SquareColor( uint16_t x0, uint16_t y0, uint16_t color ){
+	for( line = 1; line< 29; line++){
+		LCD_DrawLine(x0+1, y0+line+1, x0+29, y0+1+ line, color);
+	}
+}
 
+void LCD_DrawToken( uint16_t x0, uint16_t y0, uint16_t color ){
+	LCD_DrawLine(x0-10, y0-10, x0+10, y0-10, color);
+	LCD_DrawLine(x0-10, y0-10, x0-10, y0+10, color);
+	LCD_DrawLine(x0+10, y0-10, x0+10, y0+10, color);
+	LCD_DrawLine(x0-10, y0+10, x0+10, y0+10, color);
+}
 
 /*********************************************************************************************************
       END FILE

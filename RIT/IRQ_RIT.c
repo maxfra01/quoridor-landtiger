@@ -8,8 +8,11 @@
 **--------------------------------------------------------------------------------------------------------
 *********************************************************************************************************/
 #include "lpc17xx.h"
+#include "string.h"
 #include "RIT.h"
+#include "../game.h"
 #include "../led/led.h"
+#include "../GLCD/GLCD.h"
 #include "../button_EXINT/button.h"
 
 /******************************************************************************
@@ -23,6 +26,9 @@
 ******************************************************************************/
 
 volatile int down=0;
+volatile char selected_move;
+extern volatile int player_turn, wall_mode;
+
 
 void RIT_IRQHandler (void)
 {					
@@ -34,21 +40,106 @@ void RIT_IRQHandler (void)
 		up++;
 		switch(up){
 			case 1:
-				LED_Off(position);
-				LED_On(0);
-				position = 0;
-				break;
-			case 100:
-				LED_Out(0xFF);
+				if (tryMove(-1,0)) {
+					selected_move='u';
+
+				}
 				break;
 			default:
+				up=0;
 				break;
 		}
 	}
 	else{
 			up=0;
 	}
+	if((LPC_GPIO1->FIOPIN & (1<<28)) == 0){
+		/* Joytick RIGHT pressed */
+ 		up++;
+		switch(up){
+			case 1:
+				if (tryMove(0,1)){
+					selected_move='r';
+				}
+				
+				break;
+			default:
+				up=0;
+				break;
+		}
+	}
+	else{
+		up=0;
+	}
+
+	if((LPC_GPIO1->FIOPIN & (1<<27)) == 0){
+		/* Joytick LEFT pressed */
+		up++;
+		switch(up){
+			case 1:
+				if (tryMove(0,-1)) {
+					selected_move='l';
+				}
+				
+				break;
 	
+			default:
+				up=0;
+				break;
+		}
+	}
+	else{
+		up=0;
+	}
+	if((LPC_GPIO1->FIOPIN & (1<<26)) == 0){
+		/* Joytick DOWN pressed */
+		up++;
+		switch(up){
+			case 1:
+				if (tryMove(1,0)){ 
+					selected_move='d';
+				}
+				
+				break;
+
+			default:
+				up=0;
+				break;
+		}
+	}
+	else{
+		up=0;
+	}
+	if((LPC_GPIO1->FIOPIN & (1<<25)) == 0){
+		/* Joytick SELECT pressed */
+		up++;
+		switch(up){
+			case 1:
+				if (selected_move == 'u'){
+					setNewPosition(player_turn, -1, 0);
+				}
+				if (selected_move == 'r'){
+					setNewPosition(player_turn, 0, 1);
+				}
+				if (selected_move == 'l'){
+					setNewPosition(player_turn, 0, -1);
+				}
+				if (selected_move == 'd'){
+					setNewPosition(player_turn, 1, 0);
+				}
+				
+				break;
+	
+			default:
+				up=0;
+				break; 
+		}
+	}
+	else{
+		up=0;
+	}
+	
+	LPC_RIT->RICOUNTER = 0;
   LPC_RIT->RICTRL |= 0x1;	/* clear interrupt flag */
 	
   return;
