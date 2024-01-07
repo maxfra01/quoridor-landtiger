@@ -1,5 +1,6 @@
 #ifndef GAME_WORLD
 #define GAME_WORLD
+#endif
 #define SIZE 7
 #define NOT_POSSIBLE 10
 #include "stdio.h"
@@ -8,7 +9,7 @@
 #include "RIT/RIT.h"
 #include "GLCD/GLCD.h" 
 #include "timer/timer.h"
-volatile int i, j;
+volatile int i, j, tmp_wall_i, tmp_wall_j, tmp_wall_orient;
 volatile int player_turn, wall_mode;
 volatile int a_remaining_walls, b_remaining_walls;
 volatile int board_main[7][7];
@@ -36,7 +37,6 @@ int getCoordinateY(int i, int j){
 
 void gameInit(){
 	
-	//initialize variables
 	player_turn=1;
 	wall_mode=0;
 	a_remaining_walls=8;
@@ -44,7 +44,7 @@ void gameInit(){
 	for(i =0 ; i< SIZE ; i++){
 		for( j = 0; j<SIZE ;j++){
 			board_main[i][j] = 0;
-			board_walls[i][j]= 0 ;		}
+			board_walls[i][j]= -1 ;		}
 	}
 	board_main[6][3] = 1;
 	board_main[0][3] = -1;
@@ -53,37 +53,31 @@ void gameInit(){
 	b_position.i=0;
 	b_position.j=3;
 	
-	
 	//drawing stuff
 	LCD_Clear(Black);
 	for (i = 0; i<=7; i++){
-		//LCD_DrawLine(15, 5+ i*30, 225, 5+i*30, Black);
 		LCD_DrawLine(0, i*30, 210, i*30, Blue);
 	}
 	for (i = 0; i<=7; i++){
-		//LCD_DrawLine(15+ i*30, 5, 15+i*30, 215, Black);
 		LCD_DrawLine( i*30, 0, i*30, 210, Blue);
 	}
 	
-	
 	LCD_DrawToken(getCoordinateX(6,3), getCoordinateY(6,3), Red);
 	LCD_DrawToken(getCoordinateX(0,3), getCoordinateY(0,3), Green);
-	GUI_Text(5,240, (uint8_t *)  "Turn A", White, Black);
+	GUI_Text(80,230, (uint8_t *)  "Turn A", Red, Black);
 	sprintf(string, "Player A has %d walls left", a_remaining_walls);
-	GUI_Text(5,260, (uint8_t *)  string, White, Black);
+	GUI_Text(5,260, (uint8_t *)  string, Red, Black);
 	sprintf(string, "Player B has %d walls left", b_remaining_walls);
-	GUI_Text(5,280, (uint8_t *) string, White, Black);
+	GUI_Text(5,280, (uint8_t *) string, Green, Black);
 	GUI_Text(5,300, "Remaining time: 20", White, Black);
-	
-	
 	
 	//setup timer and start the game
 	init_timer(0, 0x017D7840);		//1 sec timer
 	NVIC_SetPriority(TIMER0_IRQn, -3);
 	enable_timer(0);
 	highlightPossibleMoves();
+	NVIC_EnableIRQ(EINT1_IRQn);
 	enable_RIT();
-	
 	
 	return;
 }
@@ -115,19 +109,21 @@ int changeActivePlayer(){
 		LCD_DrawToken(getCoordinateX(i,j), getCoordinateY(i,j), Green);
 	}
 	
+	drawWalls();
+	
 	sprintf(string, "Player A has %d walls left", a_remaining_walls);
-	GUI_Text(5,260, (uint8_t *)  string, White, Black);
+	GUI_Text(5,260, (uint8_t *)  string, Red, Black);
 	sprintf(string, "Player B has %d walls left", b_remaining_walls);
-	GUI_Text(5,280, (uint8_t *) string, White, Black);
+	GUI_Text(5,280, (uint8_t *) string, Green, Black);
 	
 	LPC_RIT->RICOUNTER= 0;
 	selected_move = 'x';
 	player_turn = player_turn*(-1);
 	if (player_turn==1){
-			GUI_Text(5,240, (uint8_t *)  "Turn A", White, Black);
+			GUI_Text(80,230, (uint8_t *)  "Turn A", Red, Black);
 		}
 		else{
-			GUI_Text(5,240, (uint8_t *) "Turn B", White, Black);
+			GUI_Text(80,230, (uint8_t *) "Turn B", Green, Black);
 		}
 	wall_mode=0;
 	highlightPossibleMoves();
@@ -145,7 +141,7 @@ void highlightPossibleMoves(void){
 	//first possible move UP
 	if (board_main[i-1][j]==player_turn*(-1)){
 		//check if can jump over 
-		if (i-2>=0){
+		if (i-2>=0 && board_walls[i+1][j] != 0 && board_walls[i+1][j+1] != 0){
 			possible_moves[0].i= -2;
 			possible_moves[0].j = 0; 
 			LCD_SquareColor(j*30, (i-2)*30, Yellow);
@@ -157,7 +153,7 @@ void highlightPossibleMoves(void){
 	}
 	else
 	{
-		if (i-1 < SIZE && i-1 >= 0){
+		if (i-1 < SIZE && i-1 >= 0 && board_walls[i][j]!= 0 && board_walls[i][j+1]!=0){
 		LCD_SquareColor(j*30, (i-1)*30, Yellow);
 		possible_moves[0].i= -1;
 		possible_moves[0].j = 0; 
@@ -172,7 +168,7 @@ void highlightPossibleMoves(void){
 	//move RIGHT
 	if (board_main[i][j+1]==player_turn*(-1)){
 		//check if can jump over on right
-		if (j+2<SIZE){
+		if (j+2<SIZE && board_walls[i][j+2]!=1 && board_walls[i+1][j+2] != 1){
 			possible_moves[1].i= 0;
 			possible_moves[1].j = 2; 
 			LCD_SquareColor((j+2)*30, (i)*30, Yellow);
@@ -183,7 +179,7 @@ void highlightPossibleMoves(void){
 		}
 	}
 	else{
-		if (j+1 < SIZE) {
+		if (j+1 < SIZE && board_walls[i][j+1]!= 1 && board_walls[i+1][j+1] != 1) {
 			LCD_SquareColor((j+1)*30, i*30, Yellow);
 			possible_moves[1].i= 0;
 			possible_moves[1].j = 1; 
@@ -196,7 +192,7 @@ void highlightPossibleMoves(void){
 	//move LEFT
 	if (board_main[i][j-1]==player_turn*(-1)){
 		//check if can jump over on left
-		if (j-2>=0){
+		if (j-2>=0 && board_walls[i][j-1]!= 1 && board_walls[i+1][j-1]!= 1){
 			possible_moves[2].i= 0;
 			possible_moves[2].j = -2; 
 			LCD_SquareColor((j-2)*30, (i)*30, Yellow);
@@ -207,7 +203,7 @@ void highlightPossibleMoves(void){
 		}
 	}
 	else{
-		if (j-1 >=0) {
+		if (j-1 >=0 && board_walls[i][j] != 1 && board_walls[i+1][j] != 1) {
 			LCD_SquareColor((j-1)*30, i*30, Yellow);
 			possible_moves[2].i= 0;
 			possible_moves[2].j = -1; 
@@ -220,8 +216,8 @@ void highlightPossibleMoves(void){
 	
 	//move DOWN
 	if (board_main[i+1][j]==player_turn*(-1)){
-		//check if can jump over on left
-		if (i+2<SIZE){
+		//check if can jump over on down
+		if (i+2<SIZE && board_walls[i+2][j] != 0 && board_walls[i+2][j+1]!= 0){
 			possible_moves[3].i= 2;
 			possible_moves[3].j = 0; 
 			LCD_SquareColor(j*30, (i+2)*30, Yellow);
@@ -232,7 +228,7 @@ void highlightPossibleMoves(void){
 		}
 	}
 	else{
-		if (i+1 < SIZE){
+		if (i+1 < SIZE && board_walls[i+1][j] != 0 && board_walls[i+1][j+1] !=0){
 			LCD_SquareColor(j*30, (i+1)*30, Yellow);
 			possible_moves[3].i= 1;
 			possible_moves[3].j = 0; 
@@ -274,17 +270,23 @@ void setNewPosition(int player, position p){
 }
 
 void switchMode(void){
+	tmp_wall_i=3;
+	tmp_wall_j=4;
+	tmp_wall_orient=0;
 	if (wall_mode==1){
 		//go to move mode
+		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); //delete temporary wall
 		wall_mode=0;
 		NVIC_DisableIRQ(EINT2_IRQn);
 		highlightPossibleMoves();
 	}
 	else {
 		//go to wall mode
+		cleanMoves();
+		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient);
 		wall_mode=1;
 		NVIC_EnableIRQ(EINT2_IRQn);
-		cleanMoves();
+		
 	}
 }
 
@@ -294,14 +296,26 @@ void cleanMoves(void){
 		if (possible_moves[i].i != NOT_POSSIBLE)
 			LCD_SquareColor(30*(pos.j + possible_moves[i].j), 30* (pos.i+ possible_moves[i].i), Black);
 	}
+	LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient);
 }
 
-void rotateWall(void){}
+void rotateWall(void){
+	LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient);
+	drawWalls();
+	if (tmp_wall_orient == 0){ 
+		tmp_wall_orient = 1;
+	}
+	else {
+		tmp_wall_orient = 0;
+	}
+	LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient);
+}
 
 int checkWin(void){
 	if (player_turn == 1 ) {
 		for (i = 0 ; i < SIZE ; i++){
 			if (board_main[0][i] == 1){
+				NVIC_DisableIRQ(TIMER0_IRQn);
 				disable_timer(0);
 				LPC_TIM0->IR = 1;			/* clear interrupt flag */
 				disable_RIT();
@@ -310,7 +324,7 @@ int checkWin(void){
 				NVIC_DisableIRQ(EINT1_IRQn);
 				NVIC_DisableIRQ(EINT2_IRQn);
 				LCD_Clear(Black);
-				GUI_Text(5, 150, (uint8_t *) "Player A wins!", White, Black);
+				GUI_Text(5, 150, (uint8_t *) "Player A wins!", Red, Black);
 				NVIC_EnableIRQ(EINT0_IRQn);
 				return 1;
 			}
@@ -319,6 +333,7 @@ int checkWin(void){
 	else{
 		for (i = 0 ; i < SIZE ; i++){
 			if (board_main[6][i] == -1){
+				NVIC_DisableIRQ(TIMER0_IRQn);
 				disable_timer(0);
 				LPC_TIM0->IR = 1;			/* clear interrupt flag */
 				disable_RIT();
@@ -327,7 +342,7 @@ int checkWin(void){
 				NVIC_DisableIRQ(EINT1_IRQn);
 				NVIC_DisableIRQ(EINT2_IRQn);
 				LCD_Clear(Black);
-				GUI_Text(5, 150, (uint8_t *) "Player B wins!", White, Black);
+				GUI_Text(5, 150, (uint8_t *) "Player B wins!", Green, Black);
 				NVIC_EnableIRQ(EINT0_IRQn);
 				return 1;
 			}
@@ -336,4 +351,44 @@ int checkWin(void){
 	return 0;
 }
 
-#endif
+
+void placeWall(){ 
+	volatile int ok=0;
+	//TOPO check path
+	
+	if (board_walls[tmp_wall_i][tmp_wall_j] == -1){
+		if (tmp_wall_orient==0){
+			if (!(board_walls[tmp_wall_i][tmp_wall_j+1]== 0) && !(board_walls[tmp_wall_i][tmp_wall_j-1]== 0)){
+				ok=1;
+			}
+		}
+		else{
+			if (!(board_walls[tmp_wall_i+1][tmp_wall_j]== 1) && !(board_walls[tmp_wall_i-1][tmp_wall_j]== 1)){
+				ok=1;
+			}
+		}
+	}
+		
+	if (ok){
+		board_walls[tmp_wall_i][tmp_wall_j] =tmp_wall_orient;
+		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Red, tmp_wall_orient);
+		if (player_turn==1){
+			a_remaining_walls--;
+		}
+		else{
+			b_remaining_walls--;
+		}
+		changeActivePlayer();
+	}
+}
+
+
+void drawWalls(void){
+	for(i =0 ; i< SIZE ; i++){
+		for( j = 0; j<SIZE ;j++){
+			if (board_walls[i][j] != -1){
+				LCD_DrawWall(j*30, i*30, Red, board_walls[i][j]);
+			}	
+		}
+	}
+}

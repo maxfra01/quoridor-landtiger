@@ -25,8 +25,8 @@
 ******************************************************************************/
 volatile int seconds=20;
 volatile char first_char[2];
-extern volatile int player_turn;
-extern volatile int a_remaining_walls, b_remaining_walls;
+extern int player_turn;
+extern int a_remaining_walls, b_remaining_walls, tmp_wall_i, tmp_wall_j, tmp_wall_orient;
 
 void TIMER0_IRQHandler (void)
 {
@@ -36,15 +36,9 @@ void TIMER0_IRQHandler (void)
 	
 	
 	if(seconds==0){
+		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient);
 		cleanMoves();
 		changeActivePlayer();
-		GUI_Text(5,300, "Remaining time: 20", White, Black);
-		if (player_turn==1){
-			GUI_Text(5,240, (uint8_t *)  "Turn A", White, Black);
-		}
-		else{
-			GUI_Text(5,240, (uint8_t *) "Turn B", White, Black);
-		}
 		seconds=20;
 	}
 	

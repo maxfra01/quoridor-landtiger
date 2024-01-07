@@ -681,6 +681,17 @@ void LCD_DrawToken( uint16_t x0, uint16_t y0, uint16_t color ){
 	LCD_DrawLine(x0-10, y0+10, x0+10, y0+10, color);
 }
 
+void LCD_DrawWall( uint16_t x0, uint16_t y0, uint16_t color, int orient ){
+	if (orient == 1){
+		//orient == 1 -> vertical wall
+		LCD_DrawLine(x0, y0-30,x0, y0+30, color);
+	}
+	else{
+		//orient == o -> horizontal wall
+		LCD_DrawLine(x0-30, y0,x0+30, y0, color);
+	}
+}
+
 /*********************************************************************************************************
       END FILE
 *********************************************************************************************************/
