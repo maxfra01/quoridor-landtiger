@@ -30,14 +30,22 @@ Build target 'Target 1'
 compiling game.c...
 game.h(13): warning:  #1295-D: Deprecated declaration changeActivePlayer - give arg types
   int changeActivePlayer();
-game.c(81): warning:  #68-D: integer conversion resulted in a change of sign
+game.c(72): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
+  	sprintf(string, "Player A has %d walls left", a_remaining_walls);
+game.c(74): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
+  	sprintf(string, "Player B has %d walls left", b_remaining_walls);
+game.c(82): warning:  #68-D: integer conversion resulted in a change of sign
   	NVIC_SetPriority(TIMER0_IRQn, -3);
-game.c(246): warning:  #1-D: last line of file ends without a newline
+game.c(118): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
+  	sprintf(string, "Player A has %d walls left", a_remaining_walls);
+game.c(120): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
+  	sprintf(string, "Player B has %d walls left", b_remaining_walls);
+game.c(339): warning:  #1-D: last line of file ends without a newline
   #endif
-game.c: 3 warnings, 0 errors
+game.c: 7 warnings, 0 errors
 linking...
-Program Size: Code=22610 RO-data=1806 RW-data=92 ZI-data=1036  
-".\sample.axf" - 0 Error(s), 3 Warning(s).
+Program Size: Code=23220 RO-data=1792 RW-data=92 ZI-data=1132  
+".\sample.axf" - 0 Error(s), 7 Warning(s).
 
 <h2>Software Packages used:</h2>
 

@@ -33,10 +33,10 @@ void TIMER0_IRQHandler (void)
 	seconds--;
 	sprintf(first_char, "Remaining time: %02d", (seconds));
 	GUI_Text(5,300,  first_char, White, Black);
-	//GUI_Text(120,300,  &second_char, Black, White);
 	
 	
 	if(seconds==0){
+		cleanMoves();
 		changeActivePlayer();
 		GUI_Text(5,300, "Remaining time: 20", White, Black);
 		if (player_turn==1){

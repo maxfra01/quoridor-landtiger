@@ -14,6 +14,7 @@
 #include "../led/led.h"
 #include "../GLCD/GLCD.h"
 #include "../button_EXINT/button.h"
+#define NOT_POSSIBLE 10
 
 /******************************************************************************
 ** Function name:		RIT_IRQHandler
@@ -27,20 +28,21 @@
 
 volatile int down=0;
 volatile char selected_move;
-extern volatile int player_turn, wall_mode;
+extern int player_turn, wall_mode;
+extern position possible_moves[4];
 
 
 void RIT_IRQHandler (void)
 {					
 	static int up=0;
-	static int position=0;	
+	static int position=0;
 	
 	if((LPC_GPIO1->FIOPIN & (1<<29)) == 0){	
 		/* Joytick UP pressed */
 		up++;
 		switch(up){
 			case 1:
-				if (tryMove(-1,0)) {
+				if (possible_moves[0].i != NOT_POSSIBLE && tryMove(possible_moves[0])) {
 					selected_move='u';
 
 				}
@@ -58,7 +60,7 @@ void RIT_IRQHandler (void)
  		up++;
 		switch(up){
 			case 1:
-				if (tryMove(0,1)){
+				if (possible_moves[1].i != NOT_POSSIBLE && tryMove(possible_moves[1])){
 					selected_move='r';
 				}
 				
@@ -77,7 +79,7 @@ void RIT_IRQHandler (void)
 		up++;
 		switch(up){
 			case 1:
-				if (tryMove(0,-1)) {
+				if (possible_moves[2].i != NOT_POSSIBLE && tryMove(possible_moves[2])) {
 					selected_move='l';
 				}
 				
@@ -96,7 +98,7 @@ void RIT_IRQHandler (void)
 		up++;
 		switch(up){
 			case 1:
-				if (tryMove(1,0)){ 
+				if (possible_moves[3].i != NOT_POSSIBLE && tryMove(possible_moves[3])){ 
 					selected_move='d';
 				}
 				
@@ -116,16 +118,16 @@ void RIT_IRQHandler (void)
 		switch(up){
 			case 1:
 				if (selected_move == 'u'){
-					setNewPosition(player_turn, -1, 0);
+					setNewPosition(player_turn, possible_moves[0]);
 				}
 				if (selected_move == 'r'){
-					setNewPosition(player_turn, 0, 1);
+					setNewPosition(player_turn, possible_moves[1]);
 				}
 				if (selected_move == 'l'){
-					setNewPosition(player_turn, 0, -1);
+					setNewPosition(player_turn, possible_moves[2]);
 				}
 				if (selected_move == 'd'){
-					setNewPosition(player_turn, 1, 0);
+					setNewPosition(player_turn, possible_moves[3]);
 				}
 				
 				break;
