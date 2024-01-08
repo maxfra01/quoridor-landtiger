@@ -30,21 +30,21 @@ Build target 'Target 1'
 compiling game.c...
 game.h(26): warning:  #1295-D: Deprecated declaration placeWall - give arg types
   void placeWall();
-game.c(68): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
+game.c(72): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
   	sprintf(string, "Player A has %d walls left", a_remaining_walls);
-game.c(70): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
+game.c(74): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
   	sprintf(string, "Player B has %d walls left", b_remaining_walls);
-game.c(76): warning:  #68-D: integer conversion resulted in a change of sign
+game.c(80): warning:  #68-D: integer conversion resulted in a change of sign
   	NVIC_SetPriority(TIMER0_IRQn, -3);
-game.c(114): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
+game.c(118): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
   	sprintf(string, "Player A has %d walls left", a_remaining_walls);
-game.c(116): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
+game.c(120): warning:  #167-D: argument of type "volatile char *" is incompatible with parameter of type "char *restrict"
   	sprintf(string, "Player B has %d walls left", b_remaining_walls);
-game.c(394): warning:  #1-D: last line of file ends without a newline
+game.c(462): warning:  #1-D: last line of file ends without a newline
   }
 game.c: 7 warnings, 0 errors
 linking...
-Program Size: Code=24850 RO-data=1806 RW-data=100 ZI-data=1132  
+Program Size: Code=25866 RO-data=1790 RW-data=104 ZI-data=1648  
 ".\sample.axf" - 0 Error(s), 7 Warning(s).
 
 <h2>Software Packages used:</h2>

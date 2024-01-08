@@ -24,5 +24,4 @@ int tryMove(position p);
 void drawWalls(void);
 void rotateWall(void);
 void placeWall();
-
-void checkwalls(void);
+int checkPath(void);

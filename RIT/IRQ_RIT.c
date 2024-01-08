@@ -187,9 +187,10 @@ void RIT_IRQHandler (void)
 	else{
 		up=0;
 	}
-	
+	disable_RIT();
 	LPC_RIT->RICOUNTER = 0;
   LPC_RIT->RICTRL |= 0x1;	/* clear interrupt flag */
+	enable_RIT();
 	
   return;
 }

@@ -53,6 +53,10 @@ void gameInit(){
 	b_position.i=0;
 	b_position.j=3;
 	
+	tmp_wall_i=3;
+	tmp_wall_j=4;
+	tmp_wall_orient=0;
+	
 	//drawing stuff
 	LCD_Clear(Black);
 	for (i = 0; i<=7; i++){
@@ -116,8 +120,10 @@ int changeActivePlayer(){
 	sprintf(string, "Player B has %d walls left", b_remaining_walls);
 	GUI_Text(5,280, (uint8_t *) string, Green, Black);
 	
+	disable_RIT();
 	LPC_RIT->RICOUNTER= 0;
 	selected_move = 'x';
+	
 	player_turn = player_turn*(-1);
 	if (player_turn==1){
 			GUI_Text(80,230, (uint8_t *)  "Turn A", Red, Black);
@@ -129,6 +135,7 @@ int changeActivePlayer(){
 	highlightPossibleMoves();
 	seconds=20;
 	GUI_Text(5,300, "Remaining time: 20", White, Black);
+	enable_RIT();
 	return player_turn;
 }
 
@@ -270,13 +277,13 @@ void setNewPosition(int player, position p){
 }
 
 void switchMode(void){
-	tmp_wall_i=3;
-	tmp_wall_j=4;
-	tmp_wall_orient=0;
 	if (wall_mode==1){
 		//go to move mode
 		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); //delete temporary wall
 		wall_mode=0;
+		tmp_wall_i=3;
+		tmp_wall_j=4;
+		tmp_wall_orient=0;
 		NVIC_DisableIRQ(EINT2_IRQn);
 		highlightPossibleMoves();
 	}
@@ -353,9 +360,7 @@ int checkWin(void){
 
 
 void placeWall(){ 
-	volatile int ok=0;
-	//TOPO check path
-	
+	volatile int ok=0;	
 	if (board_walls[tmp_wall_i][tmp_wall_j] == -1){
 		if (tmp_wall_orient==0){
 			if (!(board_walls[tmp_wall_i][tmp_wall_j+1]== 0) && !(board_walls[tmp_wall_i][tmp_wall_j-1]== 0)){
@@ -369,7 +374,7 @@ void placeWall(){
 		}
 	}
 		
-	if (ok){
+	if (ok && checkPath()){
 		board_walls[tmp_wall_i][tmp_wall_j] =tmp_wall_orient;
 		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Red, tmp_wall_orient);
 		if (player_turn==1){
@@ -380,6 +385,7 @@ void placeWall(){
 		}
 		changeActivePlayer();
 	}
+	return;
 }
 
 
@@ -391,4 +397,66 @@ void drawWalls(void){
 			}	
 		}
 	}
+}
+
+int checkPath(void){
+	volatile int tmp_board[7][7], tmp_board_walls[7][7], tmp_i, tmp_j,end, write;
+	for(i =0 ; i< SIZE ; i++){
+		for( j = 0; j<SIZE ;j++){
+			tmp_board[i][j] = 0;
+			tmp_board_walls[i][j] = board_walls[i][j];
+		}
+	}
+	tmp_board_walls[tmp_wall_i][tmp_wall_j] = tmp_wall_orient;
+	tmp_i = getPlayerPosition(player_turn*-1).i;
+	tmp_j = getPlayerPosition(player_turn*-1).j;
+	tmp_board[tmp_i][tmp_j]=1;
+	end = 0;
+	write = 1;
+	
+	while(!end && write){
+		write = 0;
+		for(i =0 ; i< SIZE ; i++){
+			for( j = 0; j<SIZE ;j++){
+				
+				//explore board
+				if (tmp_board[i][j]==1){
+					
+					if (player_turn*-1==1 && i == 0 && tmp_board[i][j]==1){
+					end = 1;
+				}
+					if (player_turn*-1==-1 && i == 6 && tmp_board[i][j]==1){
+					end = 1;
+				}
+					
+					if (i-1>=0 && tmp_board_walls[i][j] != 0 && tmp_board_walls[i][j+1] !=0 && tmp_board[i-1][j]==0){
+						tmp_board[i-1][j] = 1;
+						write = 1;
+					}
+					if (j+1<SIZE && tmp_board_walls[i][j+1] != 1 && tmp_board_walls[i+1][j+1] !=1 && tmp_board[i][j+1]==0){
+						tmp_board[i][j+1] = 1;
+						write = 1;
+					}
+					if (j-1>=0 && tmp_board_walls[i][j] != 1 && tmp_board_walls[i+1][j] !=1 && tmp_board[i][j-1]==0){
+						tmp_board[i][j-1] = 1;
+						write = 1;
+					}
+					if (i+1<SIZE && tmp_board_walls[i+1][j] != 0 && tmp_board_walls[i+1][j+1] !=0 && tmp_board[i+1][j]==0){
+						tmp_board[i+1][j] = 1;
+						write = 1;
+					}
+					tmp_board[i][j]=2;
+				}
+			}
+		}
+	}
+	if (end){
+		//valid wall
+		return 1;
+	}
+	else{
+		//not valid
+		return 0;
+	}
+	
 }
