@@ -24,15 +24,17 @@
 **
 ******************************************************************************/
 volatile int seconds=20;
-volatile char first_char[2];
+volatile char first_char, second_char;
 extern int player_turn;
 extern int a_remaining_walls, b_remaining_walls, tmp_wall_i, tmp_wall_j, tmp_wall_orient;
 
 void TIMER0_IRQHandler (void)
 {
 	seconds--;
-	sprintf(first_char, "Remaining time: %02d", (seconds));
-	GUI_Text(5,300,  first_char, White, Black);
+	first_char = (int) seconds/10 +'0';
+	second_char = seconds%10 + '0';
+	GUI_Text(135, 300, &first_char, White, Black);
+	//GUI_Text(150, 300, &second_char, White, Black);
 	
 	
 	if(seconds==0){

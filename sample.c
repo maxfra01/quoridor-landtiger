@@ -50,6 +50,7 @@ int main(void)
 	init_RIT(0x001312D0);
 	joystick_init();
   LCD_Initialization();
+	enable_RIT();
 	
 	LPC_SC->PCON |= 0x1;									/* power-down	mode										*/
 	LPC_SC->PCON &= ~(0x2);						

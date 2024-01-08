@@ -73,16 +73,15 @@ void gameInit(){
 	GUI_Text(5,260, (uint8_t *)  string, Red, Black);
 	sprintf(string, "Player B has %d walls left", b_remaining_walls);
 	GUI_Text(5,280, (uint8_t *) string, Green, Black);
-	GUI_Text(5,300, "Remaining time: 20", White, Black);
+	GUI_Text(5,300, "Remaining time: ", White, Black);
 	
 	//setup timer and start the game
 	init_timer(0, 0x017D7840);		//1 sec timer
 	NVIC_SetPriority(TIMER0_IRQn, -3);
-	enable_timer(0);
 	highlightPossibleMoves();
 	NVIC_EnableIRQ(EINT1_IRQn);
-	enable_RIT();
-	
+	NVIC_DisableIRQ(EINT2_IRQn);
+	enable_timer(0);
 	return;
 }
 
@@ -115,27 +114,28 @@ int changeActivePlayer(){
 	
 	drawWalls();
 	
+	player_turn = player_turn*(-1);
+	if (player_turn==1){
+			GUI_Text(80,230, (uint8_t *)  "Turn A", Red, Black);
+		}
+	else{
+		GUI_Text(80,230, (uint8_t *) "Turn B", Green, Black);
+	}
+	
 	sprintf(string, "Player A has %d walls left", a_remaining_walls);
 	GUI_Text(5,260, (uint8_t *)  string, Red, Black);
 	sprintf(string, "Player B has %d walls left", b_remaining_walls);
 	GUI_Text(5,280, (uint8_t *) string, Green, Black);
 	
-	disable_RIT();
-	LPC_RIT->RICOUNTER= 0;
 	selected_move = 'x';
 	
-	player_turn = player_turn*(-1);
-	if (player_turn==1){
-			GUI_Text(80,230, (uint8_t *)  "Turn A", Red, Black);
-		}
-		else{
-			GUI_Text(80,230, (uint8_t *) "Turn B", Green, Black);
-		}
 	wall_mode=0;
 	highlightPossibleMoves();
+	
+	GUI_Text(5,300, "Remaining time:", White, Black);
 	seconds=20;
-	GUI_Text(5,300, "Remaining time: 20", White, Black);
-	enable_RIT();
+	NVIC_DisableIRQ(EINT2_IRQn);
+	reset_RIT();
 	return player_turn;
 }
 
@@ -270,7 +270,6 @@ void setNewPosition(int player, position p){
 		b_position.j+= p.j;
 		board_main[b_position.i][b_position.j] = -1;
 	}
-	LPC_RIT->RICOUNTER = 0;
 	if (!checkWin())
 		changeActivePlayer();
 	return;
@@ -286,13 +285,18 @@ void switchMode(void){
 		tmp_wall_orient=0;
 		NVIC_DisableIRQ(EINT2_IRQn);
 		highlightPossibleMoves();
+		reset_RIT();
 	}
 	else {
 		//go to wall mode
 		cleanMoves();
+		tmp_wall_i=3;
+		tmp_wall_j=4;
+		tmp_wall_orient=0;
 		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient);
 		wall_mode=1;
 		NVIC_EnableIRQ(EINT2_IRQn);
+		reset_RIT();
 		
 	}
 }
@@ -326,7 +330,6 @@ int checkWin(void){
 				disable_timer(0);
 				LPC_TIM0->IR = 1;			/* clear interrupt flag */
 				disable_RIT();
-				reset_RIT();
 				LPC_RIT->RICTRL |= 0x1;	/* clear interrupt flag */
 				NVIC_DisableIRQ(EINT1_IRQn);
 				NVIC_DisableIRQ(EINT2_IRQn);
@@ -344,7 +347,6 @@ int checkWin(void){
 				disable_timer(0);
 				LPC_TIM0->IR = 1;			/* clear interrupt flag */
 				disable_RIT();
-				reset_RIT();
 				LPC_RIT->RICTRL |= 0x1;	/* clear interrupt flag */
 				NVIC_DisableIRQ(EINT1_IRQn);
 				NVIC_DisableIRQ(EINT2_IRQn);

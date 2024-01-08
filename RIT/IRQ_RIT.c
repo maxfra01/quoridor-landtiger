@@ -27,9 +27,9 @@
 **
 ******************************************************************************/
 
-volatile int down=0;
+volatile int down_0=0, down_1 = 0, down_2 = 0;
 volatile char selected_move;
-extern int player_turn, wall_mode,  tmp_wall_i, tmp_wall_j,  tmp_wall_orient;
+extern int player_turn, wall_mode,  tmp_wall_i, tmp_wall_j,  tmp_wall_orient, a_remaining_walls, b_remaining_walls;
 extern position possible_moves[4];
 
 
@@ -56,6 +56,7 @@ void RIT_IRQHandler (void)
 						LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); 
 						tmp_wall_i--;
 						LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient); 
+						reset_RIT();
 					}
 				}
 				break;
@@ -84,6 +85,7 @@ void RIT_IRQHandler (void)
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); 
 							tmp_wall_j++;
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient); 
+							reset_RIT();
 						}
 				}
 				break;
@@ -113,6 +115,8 @@ void RIT_IRQHandler (void)
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); 
 							tmp_wall_j--;
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient); 
+							reset_RIT();
+
 						}
 				}
 				break;
@@ -142,6 +146,7 @@ void RIT_IRQHandler (void)
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); 
 							tmp_wall_i++;
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient); 
+							reset_RIT();
 						}
 				}
 				
@@ -187,8 +192,88 @@ void RIT_IRQHandler (void)
 	else{
 		up=0;
 	}
-	disable_RIT();
-	LPC_RIT->RICOUNTER = 0;
+	
+	
+	
+	/***********************************************
+	*							Button management
+	************************************************/
+	
+	if (down_0 > 1){
+		if((LPC_GPIO2->FIOPIN & (1<<10)) == 0){  /*INT0 pressed*/
+			switch(down_0){
+				case 2:
+					gameInit();
+					break;
+				default:
+					break;
+			}
+			down_0++;
+		}
+		else{
+			down_0 = 0;
+			LPC_PINCON->PINSEL4    |= (1 << 20);     /* External interrupt 0 pin selection */
+		}
+	}
+	else{
+		if (down_0 == 1){
+			down_0++;
+		}
+	}
+		
+	if (down_1>1){
+		if((LPC_GPIO2->FIOPIN & (1<<11)) == 0){  /* KEY1 pressed */
+			switch(down_1){
+				case 2:
+					if (player_turn==1 && a_remaining_walls> 0 ){
+						switchMode();
+					}
+					if (player_turn==-1 && b_remaining_walls> 0){
+						switchMode();
+	}
+					break;
+				default:
+					break;
+			}
+			down_1++;
+		}
+		else{
+			down_1 = 0;
+			NVIC_EnableIRQ(EINT1_IRQn);
+			LPC_PINCON->PINSEL4    |= (1 << 22);     /* External interrupt 0 pin selection */
+		}
+	}
+	else{
+		if (down_1 == 1){
+			down_1++;
+		}
+	}
+		
+	if (down_2 > 1){
+		if((LPC_GPIO2->FIOPIN & (1<<12)) == 0){  /* KEY2 pressed */
+			switch(down_2){
+				case 2:
+					rotateWall();
+					drawWalls();
+					break;
+				default:
+					break;
+			}
+			down_2++;
+		}
+		else{
+			NVIC_EnableIRQ(EINT2_IRQn);
+			down_2 = 0;
+			LPC_PINCON->PINSEL4    |= (1 << 24);     /* External interrupt 0 pin selection */
+		}
+	}
+	else{
+		if (down_2 == 1){
+			down_2++;
+		}
+	}
+	
+	reset_RIT();
   LPC_RIT->RICTRL |= 0x1;	/* clear interrupt flag */
 	enable_RIT();
 	
