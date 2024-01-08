@@ -7,6 +7,7 @@ typedef struct{
 
 void gameInit(void);
 int changeActivePlayer(void);
+void saveMove(int m);
 int checkWin(void);
 
 int getCoordinateX(int i, int j);

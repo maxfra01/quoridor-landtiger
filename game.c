@@ -17,6 +17,8 @@ volatile int board_walls[7][7];
 volatile position pos;
 volatile char string[100];
 
+volatile uint32_t move_log;
+
 extern int seconds;
 extern volatile char selected_move;
 
@@ -114,6 +116,10 @@ int changeActivePlayer(){
 	
 	drawWalls();
 	
+	/************************
+	*		CHANGE PLAYER
+	*************************/
+	
 	player_turn = player_turn*(-1);
 	if (player_turn==1){
 			GUI_Text(80,230, (uint8_t *)  "Turn A", Red, Black);
@@ -137,6 +143,44 @@ int changeActivePlayer(){
 	NVIC_DisableIRQ(EINT2_IRQn);
 	reset_RIT();
 	return player_turn;
+}
+
+/*************************SAVE MOVE****************************
+* Save move in 32 bit unsigned variable
+* if m is equal to 0, it means a token position was changed
+* if m is equal to 1, a new wall was placed
+* if m is equal to 2, the timer is up
+***************************************************************/
+void saveMove(int m){
+	move_log = 0;
+	if (player_turn == 1){
+		move_log |= (1 << 24);
+	}
+	else{
+		move_log |= (0 << 24);
+	}
+	switch(m){
+		case 0:
+			i = getPlayerPosition(player_turn).i;
+			j = getPlayerPosition(player_turn).j;
+			move_log |= (0 << 20);
+			move_log |= ( j << 0);
+			move_log |= ( i << 8);
+			break;
+		case 1:
+			move_log |= (1 << 20);
+			move_log |= (tmp_wall_orient ? 0 : 1 << 16);
+			move_log |= (tmp_wall_j << 0);
+			move_log |= (tmp_wall_i << 8);
+			break;
+		case 2:
+			move_log |= (0 << 20);
+			move_log |= (1 << 16);
+			break;
+		default:
+			break;
+	}
+	return;
 }
 
 void highlightPossibleMoves(void){
@@ -270,6 +314,7 @@ void setNewPosition(int player, position p){
 		b_position.j+= p.j;
 		board_main[b_position.i][b_position.j] = -1;
 	}
+	saveMove(0);
 	if (!checkWin())
 		changeActivePlayer();
 	return;
@@ -378,6 +423,7 @@ void placeWall(){
 		
 	if (ok && checkPath()){
 		board_walls[tmp_wall_i][tmp_wall_j] =tmp_wall_orient;
+		saveMove(1);
 		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Red, tmp_wall_orient);
 		if (player_turn==1){
 			a_remaining_walls--;

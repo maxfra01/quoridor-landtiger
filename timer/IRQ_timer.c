@@ -40,6 +40,7 @@ void TIMER0_IRQHandler (void)
 	if(seconds==0){
 		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient);
 		cleanMoves();
+		saveMove(2);
 		changeActivePlayer();
 		seconds=20;
 	}
