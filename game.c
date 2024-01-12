@@ -128,7 +128,7 @@ int changeActivePlayer(){
 	else{
 		GUI_Text(80,230, (uint8_t *) "Turn B", Green, Black);
 	}
-	
+	GUI_Text(5, 244, "                      ", Yellow, Black);
 	sprintf(string, "Player A has %d walls left", a_remaining_walls);
 	GUI_Text(5,260, (uint8_t *)  string, Red, Black);
 	sprintf(string, "Player B has %d walls left", b_remaining_walls);

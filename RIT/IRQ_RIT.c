@@ -231,8 +231,14 @@ void RIT_IRQHandler (void)
 					if (player_turn==1 && a_remaining_walls> 0 ){
 						switchMode();
 					}
+					if (player_turn==1 && a_remaining_walls== 0 ){
+						GUI_Text(5, 244, "No walls, move token", Yellow, Black);
+					}
 					if (player_turn==-1 && b_remaining_walls> 0){
 						switchMode();
+					}
+					if (player_turn==-1 && a_remaining_walls== 0 ){
+						GUI_Text(5, 244, "No walls, move token", Yellow, Black);
 					}
 					break;
 				default:
