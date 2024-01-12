@@ -35,13 +35,17 @@ extern position possible_moves[4];
 
 void RIT_IRQHandler (void)
 {					
-	static int up=0;
-	static int position=0;
+	static int js_up=0;
+	static int js_right = 0;
+	static int js_left = 0;
+	static int js_down = 0;
+	static int js_select = 0;
+	static int position = 0;
 	
 	if((LPC_GPIO1->FIOPIN & (1<<29)) == 0){	
 		/* Joytick UP pressed */
-		up++;
-		switch(up){
+		js_up++;
+		switch(js_up){
 			case 1:
 				if (wall_mode == 0){
 					//move token UP
@@ -52,9 +56,9 @@ void RIT_IRQHandler (void)
 				else{
 					//move wall UP
 					if (tmp_wall_i-1>0){
-						drawWalls();
 						LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); 
 						tmp_wall_i--;
+						drawWalls();
 						LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient); 
 						reset_RIT();
 					}
@@ -65,12 +69,12 @@ void RIT_IRQHandler (void)
 		}
 	}
 	else{
-			up=0;
+			js_up=0;
 	}
 	if((LPC_GPIO1->FIOPIN & (1<<28)) == 0){
 		/* Joytick RIGHT pressed */
- 		up++;
-		switch(up){
+ 		js_right++;
+		switch(js_right){
 			case 1:
 				if (wall_mode==0){
 					//move token RIGHT
@@ -81,9 +85,9 @@ void RIT_IRQHandler (void)
 				else{
 					//move wall RIGHT
 						if (tmp_wall_j+1<SIZE){
-							drawWalls();
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); 
 							tmp_wall_j++;
+							drawWalls();
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient); 
 							reset_RIT();
 						}
@@ -94,13 +98,13 @@ void RIT_IRQHandler (void)
 		}
 	}
 	else{
-		up=0;
+		js_right=0;
 	}
 
 	if((LPC_GPIO1->FIOPIN & (1<<27)) == 0){
 		/* Joytick LEFT pressed */
-		up++;
-		switch(up){
+		js_left++;
+		switch(js_left){
 			case 1:
 				if (wall_mode==0){
 					//move token LEFT
@@ -111,9 +115,9 @@ void RIT_IRQHandler (void)
 				else{
 					//move wall LEFT
 						if (tmp_wall_j-1>0){
-							drawWalls();
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); 
 							tmp_wall_j--;
+							drawWalls();
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient); 
 							reset_RIT();
 
@@ -126,12 +130,12 @@ void RIT_IRQHandler (void)
 		}
 	}
 	else{
-		up=0;
+		js_left=0;
 	}
 	if((LPC_GPIO1->FIOPIN & (1<<26)) == 0){
 		/* Joytick DOWN pressed */
-		up++;
-		switch(up){
+		js_down++;
+		switch(js_down){
 			case 1:
 				if (wall_mode==0){
 					//move token DOWN
@@ -142,8 +146,8 @@ void RIT_IRQHandler (void)
 				else{
 					//move wall DOWN
 						if (tmp_wall_i+1< SIZE){
-							drawWalls();
-							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); 
+							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient);
+							drawWalls();							
 							tmp_wall_i++;
 							LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient); 
 							reset_RIT();
@@ -157,12 +161,12 @@ void RIT_IRQHandler (void)
 		}
 	}
 	else{
-		up=0;
+		js_down=0;
 	}
 	if((LPC_GPIO1->FIOPIN & (1<<25)) == 0){
 		/* Joytick SELECT pressed */
-		up++;
-		switch(up){
+		js_select++;
+		switch(js_select){
 			case 1:
 				if (wall_mode==0){
 					//confirm token move
@@ -190,7 +194,7 @@ void RIT_IRQHandler (void)
 		}
 	}
 	else{
-		up=0;
+		js_select=0;
 	}
 	
 	
@@ -199,8 +203,9 @@ void RIT_IRQHandler (void)
 	*							Button management
 	************************************************/
 	
-	if (down_0 > 1){
+	if (down_0 != 0){
 		if((LPC_GPIO2->FIOPIN & (1<<10)) == 0){  /*INT0 pressed*/
+			down_0 ++;
 			switch(down_0){
 				case 2:
 					gameInit();
@@ -208,21 +213,18 @@ void RIT_IRQHandler (void)
 				default:
 					break;
 			}
-			down_0++;
 		}
 		else{
-			down_0 = 0;
-			LPC_PINCON->PINSEL4    |= (1 << 20);     /* External interrupt 0 pin selection */
+		down_0 = 0;
+		LPC_PINCON->PINSEL4    |= (1 << 20);     /* External interrupt 0 pin selection */
 		}
 	}
-	else{
-		if (down_0 == 1){
-			down_0++;
-		}
-	}
+	
+
 		
-	if (down_1>1){
+	if (down_1 != 0){
 		if((LPC_GPIO2->FIOPIN & (1<<11)) == 0){  /* KEY1 pressed */
+			down_1++;
 			switch(down_1){
 				case 2:
 					if (player_turn==1 && a_remaining_walls> 0 ){
@@ -235,7 +237,6 @@ void RIT_IRQHandler (void)
 				default:
 					break;
 			}
-			down_1++;
 		}
 		else{
 			down_1 = 0;
@@ -243,39 +244,35 @@ void RIT_IRQHandler (void)
 			LPC_PINCON->PINSEL4    |= (1 << 22);     /* External interrupt 0 pin selection */
 		}
 	}
-	else{
-		if (down_1 == 1){
-			down_1++;
-		}
-	}
+
 		
-	if (down_2 > 1){
-		if((LPC_GPIO2->FIOPIN & (1<<12)) == 0){  /* KEY2 pressed */
+	if (down_2 != 0 ){
+		if((LPC_GPIO2->FIOPIN & (1<<12)) == 0){  /* KEY2 pressed */	
 			switch(down_2){
 				case 2:
-					rotateWall();
 					drawWalls();
+					rotateWall();
+					
 					break;
 				default:
 					break;
 			}
 			down_2++;
 		}
-		else{
-			NVIC_EnableIRQ(EINT2_IRQn);
+	
+		else {
 			down_2 = 0;
+			NVIC_EnableIRQ(EINT2_IRQn);
 			LPC_PINCON->PINSEL4    |= (1 << 24);     /* External interrupt 0 pin selection */
 		}
 	}
-	else{
-		if (down_2 == 1){
-			down_2++;
-		}
-	}
-	
+//	else {
+//		down_2 = 0;
+//		LPC_PINCON->PINSEL4    |= (1 << 24);     /* External interrupt 0 pin selection */
+//	}
+
 	reset_RIT();
   LPC_RIT->RICTRL |= 0x1;	/* clear interrupt flag */
-	enable_RIT();
 	
   return;
 }

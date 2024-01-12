@@ -136,6 +136,7 @@ int changeActivePlayer(){
 	selected_move = 'x';
 	
 	wall_mode=0;
+	NVIC_EnableIRQ(EINT1_IRQn);
 	highlightPossibleMoves();
 	
 	GUI_Text(5,300, "Remaining time:", White, Black);
@@ -324,6 +325,7 @@ void switchMode(void){
 	if (wall_mode==1){
 		//go to move mode
 		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient); //delete temporary wall
+		drawWalls();
 		wall_mode=0;
 		tmp_wall_i=3;
 		tmp_wall_j=4;
@@ -338,6 +340,7 @@ void switchMode(void){
 		tmp_wall_i=3;
 		tmp_wall_j=4;
 		tmp_wall_orient=0;
+		drawWalls();
 		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Yellow, tmp_wall_orient);
 		wall_mode=1;
 		NVIC_EnableIRQ(EINT2_IRQn);
@@ -380,6 +383,7 @@ int checkWin(void){
 				NVIC_DisableIRQ(EINT2_IRQn);
 				LCD_Clear(Black);
 				GUI_Text(5, 150, (uint8_t *) "Player A wins!", Red, Black);
+				enable_RIT();
 				NVIC_EnableIRQ(EINT0_IRQn);
 				return 1;
 			}
@@ -397,6 +401,7 @@ int checkWin(void){
 				NVIC_DisableIRQ(EINT2_IRQn);
 				LCD_Clear(Black);
 				GUI_Text(5, 150, (uint8_t *) "Player B wins!", Green, Black);
+				enable_RIT();
 				NVIC_EnableIRQ(EINT0_IRQn);
 				return 1;
 			}

@@ -38,11 +38,12 @@ void TIMER0_IRQHandler (void)
 	
 	
 	if(seconds==0){
+		NVIC_DisableIRQ(EINT2_IRQn);
+		NVIC_DisableIRQ(EINT1_IRQn);
 		LCD_DrawWall(tmp_wall_j*30, tmp_wall_i*30, Blue, tmp_wall_orient);
 		cleanMoves();
 		saveMove(2);
 		changeActivePlayer();
-		seconds=20;
 	}
 	
   LPC_TIM0->IR = 1;			/* clear interrupt flag */
