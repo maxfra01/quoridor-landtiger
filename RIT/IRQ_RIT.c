@@ -205,7 +205,6 @@ void RIT_IRQHandler (void)
 	
 	if (down_0 != 0){
 		if((LPC_GPIO2->FIOPIN & (1<<10)) == 0){  /*INT0 pressed*/
-			down_0 ++;
 			switch(down_0){
 				case 2:
 					gameInit();
@@ -213,9 +212,12 @@ void RIT_IRQHandler (void)
 				default:
 					break;
 			}
+			down_0 ++;
 		}
+		
 		else{
 		down_0 = 0;
+		NVIC_EnableIRQ(EINT0_IRQn);
 		LPC_PINCON->PINSEL4    |= (1 << 20);     /* External interrupt 0 pin selection */
 		}
 	}
@@ -224,7 +226,6 @@ void RIT_IRQHandler (void)
 		
 	if (down_1 != 0){
 		if((LPC_GPIO2->FIOPIN & (1<<11)) == 0){  /* KEY1 pressed */
-			down_1++;
 			switch(down_1){
 				case 2:
 					if (player_turn==1 && a_remaining_walls> 0 ){
@@ -232,11 +233,12 @@ void RIT_IRQHandler (void)
 					}
 					if (player_turn==-1 && b_remaining_walls> 0){
 						switchMode();
-	}
+					}
 					break;
 				default:
 					break;
 			}
+			down_1++;
 		}
 		else{
 			down_1 = 0;
@@ -266,10 +268,7 @@ void RIT_IRQHandler (void)
 			LPC_PINCON->PINSEL4    |= (1 << 24);     /* External interrupt 0 pin selection */
 		}
 	}
-//	else {
-//		down_2 = 0;
-//		LPC_PINCON->PINSEL4    |= (1 << 24);     /* External interrupt 0 pin selection */
-//	}
+
 
 	reset_RIT();
   LPC_RIT->RICTRL |= 0x1;	/* clear interrupt flag */

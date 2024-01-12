@@ -80,6 +80,7 @@ void gameInit(){
 	//setup timer and start the game
 	init_timer(0, 0x017D7840);		//1 sec timer
 	NVIC_SetPriority(TIMER0_IRQn, -3);
+	NVIC_DisableIRQ(EINT0_IRQn);
 	highlightPossibleMoves();
 	NVIC_EnableIRQ(EINT1_IRQn);
 	NVIC_DisableIRQ(EINT2_IRQn);
@@ -193,7 +194,7 @@ void highlightPossibleMoves(void){
 	//first possible move UP
 	if (board_main[i-1][j]==player_turn*(-1)){
 		//check if can jump over 
-		if (i-2>=0 && board_walls[i+1][j] != 0 && board_walls[i+1][j+1] != 0){
+		if (i-2>=0 && board_walls[i-1][j] != 0 && board_walls[i-1][j+1] != 0){
 			possible_moves[0].i= -2;
 			possible_moves[0].j = 0; 
 			LCD_SquareColor(j*30, (i-2)*30, Yellow);
